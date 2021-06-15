@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:quiz/question_bank.dart';
-import 'package:rflutter_alert/rflutter_alert.dart';
 
 void main() => runApp(Quiz());
 
@@ -34,16 +33,48 @@ class _QuizPageState extends State<QuizPage> {
     bool correctAnswer = quizBrain.getCorrectAnswer();
 
     setState(() {
-      if(quizBrain.isFinished()==true){
-        Alert(
-          context:context,
-          title: 'Finished',
-          desc: 'You\'ve reached the end of the quiz'
-        ).show();
+      if (quizBrain.isFinished() == true &&
+          quizBrain.questionLength > scoreKeeper.length) {
+        if (userPickedAnswer == correctAnswer) {
+          scoreKeeper.add(Icon(
+            Icons.check,
+            color: Colors.green,
+          ));
+        } else {
+          scoreKeeper.add(Icon(
+            Icons.close,
+            color: Colors.red,
+          ));
+        }
 
-        quizBrain.reset();
-        scoreKeeper=[];
-      }else{
+        Future.delayed(const Duration(seconds: 1), () {
+          setState(() {
+            // Here you can write your code for open new view
+            showDialog(
+                context: context,
+                builder: (_) => AlertDialog(
+                      title: Text('খেলা শেষ'),
+                      elevation: 20,
+                      content: Text("আবার  শুরু  করতে reset চাপুন।"),
+                      actions: [
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              quizBrain.reset();
+                              scoreKeeper = [];
+                            });
+
+                            Navigator.pop(context);
+                          },
+                          child: Text("reset"),
+                        )
+                      ],
+                    ),
+                barrierDismissible: false);
+          });
+        });
+      } else if (quizBrain.isFinished() == false &&
+          quizBrain.questionLength > scoreKeeper.length) {
         if (userPickedAnswer == correctAnswer) {
           scoreKeeper.add(Icon(
             Icons.check,
@@ -57,10 +88,7 @@ class _QuizPageState extends State<QuizPage> {
         }
         quizBrain.nextQuestion();
       }
-
     });
-
-
   }
 
   @override
@@ -90,7 +118,7 @@ class _QuizPageState extends State<QuizPage> {
             color: Colors.green,
             child: TextButton(
               child: Text(
-                'True',
+                'হ্যাঁ',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20.0,
@@ -110,7 +138,7 @@ class _QuizPageState extends State<QuizPage> {
             color: Colors.red,
             child: TextButton(
               child: Text(
-                'False',
+                'না',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 20.0,
